@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello Webview</title>
+
+  <script>
+    const COPY_PASTE_MIME_TYPE = 'text/plain';
+  function copyFrom() {
+    const input = document.querySelector('#copy-from');
+    const value = input.value;
+    navigator.clipboard.write([
+      new ClipboardItem({
+        [COPY_PASTE_MIME_TYPE]: new Blob([
+          value
+        ], {
+          type: COPY_PASTE_MIME_TYPE,
+        }),
+      })
+    ]);
+    console.log('copy:', value)
+  }
+  async function pasteTo() {
+    console.log('pasteTo()')
+    const clipboardContents = await navigator.clipboard.read();
+    console.log('pasteTo() clipboardContents', clipboardContents)
+    let result = null;
+    for( const item of clipboardContents ) {
+      for( const mimeType of item.types ) {
+        if( mimeType === COPY_PASTE_MIME_TYPE ) {
+          const blob = await item.getType( mimeType );
+          const text = await blob.text();
+          result = text;
+          break;
+        }
+      }
+    }
+    // return result;
+    value = result;
+
+    const input = document.querySelector('#paste-to');
+    input.value = value;
+    console.log('copy:', value)
+  }
+  async function checkClipboardPermission() {
+    const readPermission = await navigator.permissions.query({
+      name: 'clipboard-read'
+    });
+    const writePermission = await navigator.permissions.query({
+      // not supported in Firefox
+      // https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query
+      name: 'clipboard-write'
+    });
+    console.log('read permission', readPermission);
+    console.log('write permission', writePermission);
+  }
+  </script>
+  </head>
+  <body class="sapUiBody">
+    <h1>Hello from your webview!</h1>
+    <div>
+      copy from: <input id="copy-from"/>
+      <button onclick="copyFrom()">copy</button>
+      paste to: <input id="paste-to"/>
+      <button onclick="pasteTo()">paste</button>
+      <button onclick="checkClipboardPermission()">clipboard permission</button>
+    </div>
+  </body>
+</html>
